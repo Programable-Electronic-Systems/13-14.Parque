@@ -1,3 +1,9 @@
+// include the library code:
+#include <LiquidCrystal.h>  // NUEVO
+
+// initialize the library with the numbers of the interface pins
+LiquidCrystal lcd(12, 11, A3, A2, A1, A0); //NUEVO
+
 int n=0; 
 int turno = 1;
 int convinacionArray[100];
@@ -11,8 +17,10 @@ int inputVerde = LOW;
 int inputAmarillo = LOW;
 int inputAzul = LOW;
 
-int ledRojo=11;
-int ledVerde=12;
+int ledRojo=A4;
+int ledVerde=A5;
+
+boolean haFallado=false;
 
 void nuestraDemoDos()
 {
@@ -74,10 +82,18 @@ void pulpo()
   }
 }
 
+void mostrarMsgPantalla(String msg){
+  // set up the LCD's number of columns and rows: 
+  lcd.begin(16, 2);
+  // Print a message to the LCD.
+  lcd.print(msg);
+}
+
 void seta()
 {
   digitalWrite(ledRojo,LOW);
-  digitalWrite(ledVerde,HIGH);
+  digitalWrite(ledVerde,HIGH); 
+  mostrarMsgPantalla("Ya puede pulsar");
   for(n=0; n<turno; n++)
   {
     while(digitalRead(Puls[0]) == LOW &&  digitalRead(Puls[1]) == LOW &&  digitalRead(Puls[2]) == LOW &&  digitalRead(Puls[3]) == LOW) { } // do nothing
@@ -143,31 +159,42 @@ void seta()
       }
     }
   }
-  success();
+  if(haFallado==false){
+    success();
+  }
+  haFallado=false;
   delay(500);
 }
 
 void fail(){
   digitalWrite(ledRojo,HIGH);
   digitalWrite(ledVerde,LOW);
+  mostrarMsgPantalla(":( Ohhh...");
   for (int i=0; i<3; i++)
   {
     parpadeo();
   }
+  delay(2500);
   turno = 0;
+  mostrarMsgPantalla("Nivel: "+String(turno+1));
+  haFallado=true;
 }
 
 void success(){
   digitalWrite(ledRojo,HIGH);
   digitalWrite(ledVerde,LOW);
+  mostrarMsgPantalla(":D Muy bien!!");
   for (int i=0; i<1; i++)
   {
     parpadeo();
   }
+  delay(2500);
+  mostrarMsgPantalla("Nivel: "+String(turno+1));
 }
 
 void setup()
 {
+
   pinMode(ledRojo, OUTPUT); 
   pinMode(ledVerde, OUTPUT); 
   
@@ -179,15 +206,15 @@ void setup()
     pinMode(Puls[n], INPUT);
   for (n=0; n<4; n++)                           
     pinMode(Leds[n], OUTPUT);
-
-  for(turno=1; turno<100; turno++)
-  {
-    pulpo();
-    seta();
-    delay(2500);
-  }
 }
 
 void loop()
 {
+  pulpo();
+  seta();
+  turno++;
 }
+
+
+
+
